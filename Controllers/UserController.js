@@ -1,5 +1,5 @@
 import UserModel from "../models/User.js";
-import TestModel from "../models/test.js"
+import TestModel from "../models/Test.js"
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { validationResult } from 'express-validator'
@@ -126,4 +126,28 @@ export const userProfile = async (req, res) => {
         console.log(err);
         res.status(500).json({ message: 'Помилка сервера' });
     }
+}
+
+
+export const update = async (req, res) => {
+    try {
+        const updateData = {
+            name: req.body.name
+        };
+
+        // Якщо файл завантажено, додаємо imageUrl
+        if (req.file) {
+            updateData.imageUrl = req.file.url;
+        }
+
+        await UserModel.updateOne({ _id: req.userId }, updateData);
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Не вдалося обновити профіль" });
+    }
+
+
 }
