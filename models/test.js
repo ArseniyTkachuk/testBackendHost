@@ -78,12 +78,24 @@ const ExerciseSchema = new mongoose.Schema({
 
 /*  CHILDREN */
 const Childrens = new mongoose.Schema({
+  slug: {
+    type: String,
+    required: true
+  },
+
   name: {
     type: String,
     required: true
   },
 
-  scor: Number
+  leaveCount: Number,
+
+  scor: Number,
+
+  userAnswer: {
+    type: [Object],
+    required: true
+  }
 
 }, { _id: false });
 
