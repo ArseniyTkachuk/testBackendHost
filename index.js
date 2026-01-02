@@ -75,9 +75,14 @@ const hashFiles = (req, res, next) => {
 
 // AUTH
 app.post("/register", registerValidator, UserController.register);
+app.post("/verify-email", UserController.verifyEmail)
+app.post("/sendCode", UserController.sendCode)
 app.post("/login", loginValidator, UserController.login);
+app.post("/sendLink", UserController.sendLink)
+app.post("/auth/reset-password", UserController.resetPassword)
 app.get("/auth", checkAuth, UserController.userProfile);
 app.patch("/auth", checkAuth, uploadWithHash.single('avatar'), hashFiles, UserController.update);
+app.patch("/editPassword", checkAuth, UserController.editPassword)
 
 // TESTS
 app.post("/test", checkAuth, uploadWithHash.any(), hashFiles, TestController.createTest);

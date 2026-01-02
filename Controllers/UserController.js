@@ -1,7 +1,8 @@
 import UserModel from "../models/User.js";
-import TestModel from '../models/test.js';
+import TestModel from "../models/Test.js"
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import { sendVerificationCode, sendLinkForgot } from "../middlewares/sendCode.js";
 import { validationResult } from 'express-validator'
 
 
@@ -19,7 +20,8 @@ export const register = async (req, res) => {
         // Перевірка, чи існує користувач з таким email
         const existingUser = await UserModel.findOne({ email })
         if (existingUser) {
-            return res.status(400).json({ message: 'Користувач з таким email вже існує' })
+            if (existingUser.verified)
+                return res.status(400).json({ message: 'Користувач з таким email вже існує' })
         }
 
 
@@ -27,24 +29,82 @@ export const register = async (req, res) => {
         const salt = await bcrypt.genSalt(10)
         const hash = await bcrypt.hash(password, salt)
 
-        // Створюємо нового користувача
-        const doc = new UserModel({
-            name,
-            email,
-            passwordHash: hash,
-        })
+        let doc;
 
+        // Створюємо нового користувача
+        if (existingUser) {
+            existingUser.name = name
+            existingUser.passwordHash = hash
+
+            doc = existingUser
+
+        } else {
+            doc = new UserModel({
+                name,
+                email,
+                passwordHash: hash,
+            })
+        }
         const user = await doc.save()
 
-        // Генеруємо токен
-        const token = jwt.sign({ _id: user._id }, 'TOKEN', { expiresIn: '30d' })
+        await sendVerificationCode(email, user._id, UserModel);
 
-        const { passwordHash, ...userData } = user._doc
+        res.json({ message: "Код надіслано на email" });
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ message: 'Не вдалося зареєструватися' })
+    }
+}
+
+export const verifyEmail = async (req, res) => {
+    try {
+        const { email, code } = req.body;
+
+        const user = await UserModel.findOne({ email });
+        if (!user) return res.status(400).json({ message: "Користувача не знайдено" });
+
+        if (!user.emailCodeExpires || user.emailCodeExpires < new Date())
+            return res.status(400).json({ message: "Код просрочений" });
+
+        const isValid = await bcrypt.compare(code, user.emailCodeHash);
+        if (!isValid) return res.status(400).json({ message: "Код неправильний" });
+
+        // підтверджуємо email
+        user.verified = true;
+        user.emailCodeHash = null; // можна видалити код після успішного підтвердження
+        user.emailCodeExpires = null;
+        // Вимикаємо авто-видалення
+        user.deleteAt = null;
+        const doc = await user.save();
+
+        // Генеруємо токен
+        const token = jwt.sign({ _id: doc._id }, 'TOKEN', { expiresIn: '30d' })
+
         res.json({ token })
 
     } catch (err) {
         console.log(err)
         res.status(500).json({ message: 'Не вдалося зареєструватися' })
+    }
+}
+
+export const sendCode = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        const user = await UserModel.findOne({ email });
+        if (!user) return res.status(400).json({ message: "Користувача не знайдено" });
+
+        await sendVerificationCode(email, user._id, UserModel);
+
+        res.json({ message: "Код надіслано на email" });
+
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ message: 'Не вдалося надіслати код' })
+
     }
 }
 
@@ -82,8 +142,6 @@ export const login = async (req, res) => {
             expiresIn: '30d'
         })
 
-        const { passwordHash, ...userData } = user._doc
-
         res.json({
             token
         })
@@ -94,6 +152,63 @@ export const login = async (req, res) => {
         })
     }
 }
+
+export const sendLink = async (req, res) => {
+    try {
+        const { link, email } = req.body;
+
+
+        const user = await UserModel.findOne({ email })
+
+        await sendLinkForgot(email, user._id, link, UserModel)
+
+        res.json({ seccess: true })
+
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({
+            message: 'Не вдалося надіслати лист'
+        })
+    }
+}
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { token, newPassword } = req.body
+        const user = await UserModel.findOne({
+            emailCodeExpires: { $gt: new Date() } // перевіряємо, що токен ще дійсний
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: "Посилання недійсне або прострочене" });
+        }
+
+        const isValid = await bcrypt.compare(token, user.emailCodeHash);
+
+        if (!isValid) {
+            return res.status(400).json({ message: "Посилання недійсне або прострочене" });
+        }
+
+        // токен валідний, можна міняти пароль
+
+        user.passwordHash = await bcrypt.hash(newPassword, 10);
+        user.passwordResetTokenHash = null;
+        user.passwordResetTokenExpires = null;
+
+        await user.save();
+
+        res.json({ message: "Пароль змінений" })
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({
+            message: 'Не вдалося змінити пароль'
+        })
+    }
+}
+
+
 export const userProfile = async (req, res) => {
     try {
         //  Отримуємо дані користувача
@@ -111,10 +226,10 @@ export const userProfile = async (req, res) => {
         const formattedTests = rawTests.map(test => ({
             id: test._id,
             title: test.title,
-            slug: test.slug, 
+            slug: test.slug,
             tasks: test.exercises.map(ex => ex.question), // створюємо масив тільки з текстів питань
             currentTaskIndex: 0
-        })); 
+        }));
 
         res.json({
             name: user.name,
@@ -148,6 +263,31 @@ export const update = async (req, res) => {
         console.log(err);
         res.status(500).json({ message: "Не вдалося обновити профіль" });
     }
+}
 
+export const editPassword = async (req, res) => {
+    try {
+        const { password, newPassword } = req.body;
 
+        const user = await UserModel.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ message: "Користувача не знайдено" });
+        }
+
+        const isValid = await bcrypt.compare(password, user.passwordHash);
+
+        if (!isValid) {
+            return res.status(400).json({ message: "Старий пароль не вірний" });
+        }
+
+        await UserModel.findByIdAndUpdate(req.userId, {
+            passwordHash: await bcrypt.hash(newPassword, 10)
+        })
+
+        res.json({ seccess: true })
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Не вдалося змінити пароль" });
+    }
 }

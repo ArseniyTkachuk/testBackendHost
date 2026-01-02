@@ -19,6 +19,17 @@ const UserSchema = new mongoose.Schema({
         default: "/utils/defaultUserImg.png"
     },
 
+    verified: { type: Boolean, default: false },
+
+    emailCodeHash: String,
+    emailCodeExpires: Date,
+
+    deleteAt: {
+        type: Date,
+        default: () => new Date(Date.now() + 24 * 60 * 60 * 1000),
+        index: { expires: 0 }
+    }
+
 }, { timestamps: true })
 
 export default mongoose.model('User', UserSchema);

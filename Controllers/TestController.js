@@ -1,4 +1,4 @@
-import Test from '../models/test.js';
+import Test from '../models/Test.js';
 import mongoose from 'mongoose';
 
 /*  HELPERS  */
