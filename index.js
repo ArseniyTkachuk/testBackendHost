@@ -26,7 +26,10 @@ mongoose
   .catch(err => console.log('DB error:', err));
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:4173", // фронтенд локально
+  credentials: true // якщо використовуєш cookies або авторизацію
+}));
 app.use(express.json());
 
 // Статика
