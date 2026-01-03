@@ -47,7 +47,8 @@ export const register = async (req, res) => {
         }
         const user = await doc.save()
 
-        await sendVerificationCode(email, user._id, UserModel);
+        sendVerificationCode(email, user._id, UserModel)
+            .catch(e => console.error(`SMTP FAILED: ${e.message}`));
 
         res.json({ message: "Код надіслано на email" });
 

@@ -80,6 +80,8 @@ export const sendVerificationCode = async (userEmail, userId, UserModel) => {
 `
 
 
+  }, e => {
+    console.error('SMTP failed:', e.message)
   });
 };
 
