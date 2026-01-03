@@ -88,7 +88,7 @@ export const createTest = async (req, res) => {
 
     } catch (err) {
       return res.status(400).json({
-        message: 'Некоректний формат exercises'
+        message: 'Некоректний формат завдань'
       });
     }
 
@@ -240,11 +240,11 @@ export const checkTest = async (req, res) => {
     const testid = req.params.id;
 
     if (!name) {
-      return res.status(400).json({ message: "Імʼя обовʼязкове" });
+      return res.status(400).json({ message: "Невірно вказане ім'я" });
     }
 
     if (!mongoose.Types.ObjectId.isValid(testid)) {
-      return res.status(400).json({ message: "Невірний ID тесту" });
+      return res.status(400).json({ message: "Невірний код тесту" });
     }
 
     const test = await Test.findById(testid);
@@ -342,7 +342,7 @@ export const checkUserTest = async (req, res) => {
     const { testId, childSlug } = req.params; // childSlug — це унікальний запис учня в test.childrens
 
     if (!mongoose.Types.ObjectId.isValid(testId)) {
-      return res.status(400).json({ message: "Невірний ID тесту" });
+      return res.status(400).json({ message: "Невірний код тесту" });
     }
 
     const test = await Test.findById(testId).lean();
@@ -491,7 +491,7 @@ export const update = async (req, res) => {
       });
 
     } catch (err) {
-      return res.status(400).json({ message: 'Некоректний формат exercises' });
+      return res.status(400).json({ message: 'Некоректний формат завдань' });
     }
 
     /*  VALIDATION  */

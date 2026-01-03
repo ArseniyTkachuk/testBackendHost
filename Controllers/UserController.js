@@ -181,13 +181,13 @@ export const resetPassword = async (req, res) => {
         });
 
         if (!user) {
-            return res.status(400).json({ message: "Посилання недійсне або прострочене" });
+            return res.status(404).json({ message: "Посилання недійсне або прострочене" });
         }
 
         const isValid = await bcrypt.compare(token, user.emailCodeHash);
 
         if (!isValid) {
-            return res.status(400).json({ message: "Посилання недійсне або прострочене" });
+            return res.status(404).json({ message: "Посилання недійсне або прострочене" });
         }
 
         // токен валідний, можна міняти пароль
@@ -214,7 +214,7 @@ export const userProfile = async (req, res) => {
         //  Отримуємо дані користувача
         const user = await UserModel.findById(req.userId).lean();
         if (!user) {
-            return res.status(404).json({ message: 'Користувач не існує' });
+            return res.status(404).json({ message: 'Користувач не знайдений' });
         }
 
         //  Отримуємо тести

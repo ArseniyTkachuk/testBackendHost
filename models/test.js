@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
-
 /*  PAIR  */
 const PairItemSchema = new mongoose.Schema({
   text: String,
+
   isImage: {
     type: Boolean,
     default: false
+    
   },
   imageUrl: String,
   slug: String
