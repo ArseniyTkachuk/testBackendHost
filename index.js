@@ -26,16 +26,28 @@ mongoose
   .catch(err => console.log('DB error:', err));
 
 const app = express();
-app.use(cors({
-  origin: "http://localhost:4173", // фронтенд локально
-  credentials: true // якщо використовуєш cookies або авторизацію
-}));
-app.use(express.json());
 
-app.options('*', cors({
+const allowedOrigins = [
+  "http://localhost:4173",             // локальний фронтенд
+  "https://твій-фронтенд-на-prod.com" // фронтенд продакшн
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) callback(null, true);
+    else callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true
+}));
+
+// OPTIONS для preflight
+app.options("*", cors({
   origin: allowedOrigins,
   credentials: true
 }));
+
+app.use(express.json());
+
 
 // Статика
 const uploadDir = path.join(__dirname, 'uploads');
