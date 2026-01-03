@@ -26,31 +26,8 @@ mongoose
   .catch(err => console.log('DB error:', err));
 
 const app = express();
-
-const allowedOrigins = [
-  "http://localhost:4173",             // локальний фронтенд
-  "https://твій-фронтенд-на-prod.com" // фронтенд продакшн
-];
-
-
-app.use(cors({
-  origin: function (origin, callback) {
-    // allow requests with no origin like mobile apps or curl
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS: ' + origin));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-
+app.use(cors());
 app.use(express.json());
-
 
 // Статика
 const uploadDir = path.join(__dirname, 'uploads');
