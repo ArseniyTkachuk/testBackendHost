@@ -109,8 +109,8 @@ export const sendVerificationCode = async (userEmail, userId, UserModel) => {
 
 
   const emailData = {
-    from: { name: "TestHost", email: "arsenii.tkachuk@kpk-lp.com.ua" },
-    to: [{ email }],
+    from: { name: "TestHost", userEmail: "arsenii.tkachuk@kpk-lp.com.ua" },
+    to: [{ userEmail }],
     subject: "Підтвердження email",
     html: `
   <div style="
