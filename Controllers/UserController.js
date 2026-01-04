@@ -2,6 +2,7 @@ import UserModel from "../models/User.js";
 import TestModel from "../models/test.js"
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+
 import { sendVerificationCode, sendLinkForgot } from "../middlewares/sendCode.js";
 import { validationResult } from 'express-validator'
 
