@@ -160,8 +160,25 @@ export const sendVerificationCode = async (userEmail, userId, UserModel) => {
   };
 
   return new Promise((resolve, reject) => {
-    sendpulse.smtpSendMail(() => resolve(true), emailData);
+    sendpulse.smtpSendMail((response) => {
+      if (response && response.result) {
+        console.log("📧 Email sent successfully");
+        resolve(true);
+      } else {
+        console.error("❌ Email failed:", response);
+        reject(response);
+      }
+    }, {
+      from: { name: "TestHost", email: "ryunoskyeakutagawa@gmail.com" },
+      to: [{ email: userEmail }],
+      subject: "Підтвердження email",
+      html: `
+      <h2>Підтвердження email</h2>
+      <p>Ваш код: ${code}</p>
+    `
+    });
   });
+
 
 };
 
