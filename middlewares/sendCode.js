@@ -7,8 +7,8 @@ dotenv.config();
 // створюємо транспортер один раз
 const transporter = nodemailer.createTransport({
   host: "smtp-pulse.com",
-  port: 587,        // ✅ найкращий для Railway
-  secure: false,     // STARTTLS
+  port: 465,        // ✅ найкращий для Railway
+  secure: true,     // STARTTLS
   auth: {
     user: process.env.SMTP_USER, // з SendPulse
     pass: process.env.SMTP_PASS  // SMTP пароль
