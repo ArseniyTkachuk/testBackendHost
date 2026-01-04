@@ -6,17 +6,21 @@ dotenv.config();
 
 // створюємо транспортер один раз
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
+  host: "smtp-pulse.com",
+  port: 2525,        // ✅ найкращий для Railway
+  secure: false,     // STARTTLS
   auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS,
+    user: process.env.SMTP_USER, // з SendPulse
+    pass: process.env.SMTP_PASS  // SMTP пароль
   },
   connectionTimeout: 5000,
   greetingTimeout: 5000,
   socketTimeout: 5000
 });
+
+transporter.verify()
+  .then(() => console.log("✅ SMTP ready"))
+  .catch(err => console.error("❌ SMTP verify failed:", err.message));
 
 // функція для відправки коду
 export const sendVerificationCode = async (userEmail, userId, UserModel) => {
@@ -34,11 +38,13 @@ export const sendVerificationCode = async (userEmail, userId, UserModel) => {
   });
 
   // 4. Відправляємо лист
-  await transporter.sendMail({
-    from: process.env.MAIL_USER,
-    to: userEmail,
-    subject: "Підтвердження email",
-    html: `
+
+  try {
+    const info = await transporter.sendMail({
+      from: '"TestHost" <arsenii.tkachuk@kpk-lp.com.ua>',
+      to: userEmail,
+      subject: "Підтвердження email",
+      html: `
   <div style="
     font-family: Arial, Helvetica, sans-serif;
     color: #333;
@@ -83,9 +89,12 @@ export const sendVerificationCode = async (userEmail, userId, UserModel) => {
 `
 
 
-  }, e => {
-    console.error('SMTP failed:', e.message)
-  });
+    });
+    console.log("📧 Sent:", info.messageId);
+  } catch (e) {
+    console.error("❌ SMTP failed:", e.message);
+  }
+
 };
 
 
@@ -109,7 +118,7 @@ export const sendLinkForgot = async (userEmail, userId, baseURL, UserModel) => {
 
   // 4. Відправляємо лист
   await transporter.sendMail({
-    from: process.env.MAIL_USER,
+    from: '"TestHost" <arsenii.tkachuk@kpk-lp.com.ua>',
     to: userEmail,
     subject: "Відновлення паролю",
     html: `
