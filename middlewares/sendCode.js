@@ -109,7 +109,7 @@ export const sendVerificationCode = async (userEmail, userId, UserModel) => {
 
 
   const emailData = {
-    from: '"TestHost" <ryunoskyeakutagawa@gmail.com>',
+    from: '"TestHost" <arsenii.tkachuk@kpk-lp.com.ua>',
     to: [{ email: userEmail }],
     subject: "Підтвердження email",
     html: `
@@ -169,7 +169,7 @@ export const sendVerificationCode = async (userEmail, userId, UserModel) => {
         reject(response);
       }
     }, {
-      from: { name: "TestHost", email: "ryunoskyeakutagawa@gmail.com" },
+      from: { name: "TestHost", email: "arsenii.tkachuk@kpk-lp.com.ua" },
       to: [{ email: userEmail }],
       subject: "Підтвердження email",
       html: `
