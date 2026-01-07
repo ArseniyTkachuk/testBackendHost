@@ -21,9 +21,7 @@ const PORT = process.env.PORT || 2222;
 
 // Підключення до Mongo
 mongoose
-  .connect(process.env.MONGO_URI, {
-    serverSelectionTimeoutMS: 5000,
-  })
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("DB OK"))
   .catch(err => console.error("DB error:", err))
 
