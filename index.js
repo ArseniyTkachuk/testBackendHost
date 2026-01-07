@@ -21,9 +21,17 @@ const PORT = process.env.PORT || 2222;
 
 // Підключення до Mongo
 mongoose
-  .connect('mongodb+srv://arseniitkachuk_db_user:rashamon2009@cluster0.dcqg0py.mongodb.net/tichProject?appName=Cluster0')
-  .then(() => console.log('DB OK'))
-  .catch(err => console.log('DB error:', err));
+  .connect(process.env.MONGO_URI, {
+    serverSelectionTimeoutMS: 5000,
+  })
+  .then(() => console.log("DB OK"))
+  .catch(err => console.error("DB error:", err))
+
+mongoose.connection.on("error", err => {
+  console.error("Mongo runtime error:", err)
+})
+
+
 
 const app = express();
 app.use(cors());
